@@ -1,7 +1,8 @@
-const path = require("path");
+const path = require('path');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const Dotenv = require('dotenv-webpack');
 
-const plugins = [];
+const plugins = [new Dotenv()];
 
 if (process.env.NODE_ENV === 'development') {
     plugins.push(new ReactRefreshWebpackPlugin());
@@ -9,12 +10,12 @@ if (process.env.NODE_ENV === 'development') {
 
 module.exports = {
     entry: "./src/index.tsx",
-    mode: "development",
+    mode: process.env.NODE_ENV,
     module: {
         rules: [
             {
                 test: /\.(js|jsx|ts|tsx)$/,
-                exclude: /(node_modules|bower_components)/,
+                exclude: /(node_modules)/,
                 loader: "babel-loader",
                 options: { presets: ["@babel/env"] }
             },
@@ -34,6 +35,8 @@ module.exports = {
         static: {
             directory: path.join(__dirname, "public/"),
         },
+        historyApiFallback: true,
+        hot: true,
         port: 3000,
     },
     plugins

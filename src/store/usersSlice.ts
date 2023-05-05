@@ -1,11 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { IUser } from '../../interfaces/user';
 
 interface IUserState {
     isAuthorized: boolean;
+    userData: IUser | null;
 }
 
 const initialState: IUserState = {
-    isAuthorized: Boolean(localStorage.getItem('accessToken'))
+    isAuthorized: Boolean(localStorage.getItem('accessToken')),
+    userData: null
 };
 
 export const usersSlice = createSlice({
@@ -15,6 +18,9 @@ export const usersSlice = createSlice({
         setAuthorized: (state: IUserState, action: PayloadAction<boolean>) => {
             state.isAuthorized = action.payload;
         },
+        setUserData: (state: IUserState, action: PayloadAction<IUser>) => {
+            state.userData = action.payload;
+        }
     }
 });
 

@@ -1,8 +1,30 @@
 const path = require('path');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const {
+    CleanWebpackPlugin
+} = require('clean-webpack-plugin');
 
-const plugins = [new Dotenv()];
+const plugins = [
+    new CleanWebpackPlugin(),
+    new HtmlWebpackPlugin({
+        template: './public/index.html',
+        minify: {
+            removeComments: true,
+            collapseWhitespace: true,
+            removeRedundantAttributes: true,
+            useShortDoctype: true,
+            removeEmptyAttributes: true,
+            removeStyleLinkTypeAttributes: true,
+            keepClosingSlash: true,
+            minifyJS: true,
+            minifyCSS: true,
+            minifyURLs: true,
+        }
+    }),
+    new Dotenv()
+];
 
 if (process.env.NODE_ENV === 'development') {
     plugins.push(new ReactRefreshWebpackPlugin());

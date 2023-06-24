@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useState } from 'react';
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -10,20 +10,25 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import usersSlice from '../../store/usersSlice';
 import { IUser } from '../../../interfaces/user';
 import { Alert, Snackbar } from '@mui/material';
+import { getS3ImageUrl } from '../../utils/getS3ImageUrl';
+import { getImageUrl } from '../../utils/getImageUrl';
+import { uploadImage } from '../../utils/uploadImage';
 
 interface IFormValues {
     firstName: string;
     lastName: string;
     about: string;
+    avatar: string;
 }
 
 const Profile: FC = () => {
     const [isLoading, setLoading] = useState<boolean>(false);
     const [alertInfo, setAlertInfo] = useState<IAlertInfo | null>(null);
+    const [image, setImage] = useState<File | null>(null);
     const { userData } = useAppSelector((state) => state.users);
     const dispatch = useAppDispatch();
 
-    const { control, handleSubmit, setValue } = useForm({
+    const { control, handleSubmit, setValue } = useForm<IFormValues>({
         defaultValues: {
             ...userData
         },
@@ -33,7 +38,8 @@ const Profile: FC = () => {
         const keys = userData ? Object.keys(userData) : [];
         if (keys.length > 0) {
             keys.forEach((key) => {
-                userData && setValue(key, userData[key]);
+                if (key === 'avatar') return null;
+                userData && setValue(key as keyof IFormValues, userData[key]);
             });
         }
     }, [userData]);
@@ -41,6 +47,19 @@ const Profile: FC = () => {
     const onSubmit: SubmitHandler<IFormValues> = async (data) => {
         try {
             setLoading(true);
+
+            if (image) {
+                try {
+                    const imagePath = `${userData.id}/${image.name}`;
+                    await uploadImage(image, imagePath);
+                    data.avatar = image.name;
+                } catch (e) {
+                    setAlertInfo({ severity: 'error', message: 'File save error' });
+                    delete data.image;
+                    setImage(null);
+                }
+            }
+
             await userApi.update(data);
             setAlertInfo({ severity: 'success', message: 'Successfully updated!' });
             dispatch(usersSlice.actions.setUserData(data as IUser));
@@ -56,10 +75,22 @@ const Profile: FC = () => {
         return null;
     }
 
+    const imageName = (image?.name || userData?.avatar || '').split('\\').reverse()[0];
+    const imageSrc = image ? getImageUrl(image) : getS3ImageUrl(imageName, userData.id);
+
     return (
         <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
+            <Box display="flex" justifyContent="center" mb={3}>
+                <Box height={200} width="auto">
+                    <img
+                        alt="avatar"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        src={imageSrc}
+                    />
+                </Box>
+            </Box>
             <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={4}>
                     <Controller
                         name="firstName"
                         control={control}
@@ -73,7 +104,26 @@ const Profile: FC = () => {
                         />}
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={4}>
+                    <Controller
+                        name="avatar"
+                        control={control}
+                        render={({ field }) => <TextField
+                            fullWidth
+                            id="avatar"
+                            type="file"
+                            inputProps={{
+                                accept: 'image/!*',
+                                onChange: (event) => {
+                                    const file = event.target.files[0];
+                                    setImage(file);
+                                }
+                            }}
+                            {...field}
+                        />}
+                    />
+                </Grid>
+                <Grid item xs={12} sm={4}>
                     <Controller
                         name="lastName"
                         control={control}
@@ -120,7 +170,7 @@ const Profile: FC = () => {
                 </Alert>
             </Snackbar>
         </Box>
-    )
-}
+    );
+};
 
 export default Profile;

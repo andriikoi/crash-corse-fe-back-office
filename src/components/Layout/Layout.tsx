@@ -1,6 +1,4 @@
-import React, { FC } from 'react';
-import CssBaseline from '@mui/material/CssBaseline';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import React, { FC, useEffect } from 'react';
 import CameraIcon from '@mui/icons-material/PhotoCamera';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -8,18 +6,30 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
-
-const theme = createTheme();
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import usersSlice from '../../store/usersSlice';
+import userApi from '../../api/user';
 
 const Layout: FC = ({ children }) => {
+    const { isAuthorized } = useAppSelector((state) => state.users);
+    const dispatch = useAppDispatch();
+
+    const getUserData = async () => {
+        const { data: userData } = await userApi.getMe();
+        dispatch(usersSlice.actions.setUserData(userData));
+    };
+
+    useEffect(() => {
+        getUserData();
+    }, [isAuthorized]);
+
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
+        <div>
             <AppBar position="relative">
                 <Toolbar>
                     <CameraIcon sx={{ mr: 2 }} />
                     <Typography variant="h6" color="inherit" noWrap>
-                        Full Stack Crash Course
+                        <p>Full Stack Crash Course</p>
                     </Typography>
                 </Toolbar>
             </AppBar>
@@ -54,7 +64,7 @@ const Layout: FC = ({ children }) => {
                     {'.'}
                 </Typography>
             </Box>
-        </ThemeProvider>
+        </div>
     )
 }
 

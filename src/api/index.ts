@@ -4,6 +4,7 @@ import usersSlice from '../store/usersSlice';
 
 const config = {
     baseURL: process.env.API_URL || 'http://localhost:3002',
+    withCredentials: true
 } as CreateAxiosDefaults;
 
 class Requester {
@@ -12,7 +13,7 @@ class Requester {
         this.instance = axios.create(config);
 
         this.instance.interceptors.request.use((request) => {
-            request.headers.authorization = localStorage.getItem('accessToken');
+            request.headers.authorization = typeof window !== 'undefined' && localStorage.getItem('accessToken');
             return request;
         });
 

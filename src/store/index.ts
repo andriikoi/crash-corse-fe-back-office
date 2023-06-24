@@ -5,6 +5,7 @@ const store = configureStore({
     reducer: {
         users: usersSlice.reducer,
     },
+    preloadedState: typeof window !== 'undefined' ? window.__PRELOADED_STATE__ : undefined,
 });
 
 export type RootState = ReturnType<typeof store.getState>;

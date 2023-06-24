@@ -7,7 +7,7 @@ interface IUserState {
 }
 
 const initialState: IUserState = {
-    isAuthorized: Boolean(localStorage.getItem('accessToken')),
+    isAuthorized: Boolean(typeof window !== 'undefined' && localStorage.getItem('accessToken')),
     userData: null
 };
 

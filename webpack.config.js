@@ -1,28 +1,17 @@
 const path = require('path');
+const fs = require('fs');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {
     CleanWebpackPlugin
 } = require('clean-webpack-plugin');
 
+if (fs.existsSync('./public/favicon.ico')) {
+    fs.copyFileSync('./public/favicon.ico', './dist/favicon.ico');
+}
+
 const plugins = [
-    new CleanWebpackPlugin(),
-    new HtmlWebpackPlugin({
-        template: './public/index.html',
-        minify: {
-            removeComments: true,
-            collapseWhitespace: true,
-            removeRedundantAttributes: true,
-            useShortDoctype: true,
-            removeEmptyAttributes: true,
-            removeStyleLinkTypeAttributes: true,
-            keepClosingSlash: true,
-            minifyJS: true,
-            minifyCSS: true,
-            minifyURLs: true,
-        }
-    }),
+    //new CleanWebpackPlugin(),
     new Dotenv()
 ];
 
@@ -30,8 +19,8 @@ if (process.env.NODE_ENV === 'development') {
     plugins.push(new ReactRefreshWebpackPlugin());
 }
 
-module.exports = {
-    entry: "./src/index.tsx",
+const client = {
+    entry: ["./src/index.tsx"],
     mode: process.env.NODE_ENV,
     module: {
         rules: [
@@ -65,3 +54,34 @@ module.exports = {
     },
     plugins
 };
+
+const server = {
+    entry: ["./server/server.tsx"],
+    target: 'node',
+    mode: process.env.NODE_ENV,
+    module: {
+        rules: [
+            {
+                test: /\.(js|jsx|ts|tsx)$/,
+                exclude: /(node_modules)/,
+                loader: "babel-loader",
+                options: {
+                    presets: ["@babel/env", "@babel/preset-react", "@babel/preset-typescript"],
+                }
+            },
+            {
+                test: /\.css$/,
+                use: ["style-loader", "css-loader"]
+            }
+        ]
+    },
+    resolve: { extensions: ["*", ".js", ".jsx", ".ts", ".tsx"] },
+    output: {
+        path: path.resolve(__dirname, "dist/"),
+        publicPath: "/",
+        filename: "server.js"
+    },
+    plugins
+};
+
+module.exports = [client, server];

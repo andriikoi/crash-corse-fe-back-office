@@ -11,7 +11,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import userApi from '../../api/user';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch } from '../../hooks/redux';
 import usersSlice from '../../store/usersSlice';
 import { useState } from 'react';
@@ -21,6 +21,7 @@ import { IAlertInfo } from '../../../interfaces/alert-info';
 const SignIn = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+    const [searchParams] = useSearchParams();
     const [alertInfo, setAlertInfo] = useState<IAlertInfo | null>(null);
 
     const handleSubmit = async (event) => {
@@ -33,11 +34,15 @@ const SignIn = () => {
             });
 
             const { data: { accessToken, refreshToken } } = result;
-            localStorage.setItem('accessToken', `Bearer ${accessToken}`);
-            localStorage.setItem('refreshToken', `Bearer ${refreshToken}`);
+
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('accessToken', `Bearer ${accessToken}`);
+                localStorage.setItem('refreshToken', `Bearer ${refreshToken}`);
+            }
 
             dispatch(usersSlice.actions.setAuthorized(true));
-            navigate('/profile');
+
+            navigate(searchParams.get('from') || '/profile');
         } catch (e) {
             const message = e?.response?.data?.message || e.message;
             setAlertInfo({ severity: 'error', message });

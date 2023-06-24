@@ -7,6 +7,9 @@ const {
 } = require('clean-webpack-plugin');
 
 if (fs.existsSync('./public/favicon.ico')) {
+    if (!fs.existsSync('./dist')) {
+        fs.mkdirSync('dist');
+    }
     fs.copyFileSync('./public/favicon.ico', './dist/favicon.ico');
 }
 
